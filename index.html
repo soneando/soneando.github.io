@@ -10,7 +10,7 @@
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://soneando.github.io/">
 <!-- SNSは相対パスを拾えないので絶対URL。独自ドメインに移したらここも変える -->
-<meta property="og:image" content="https://soneando.github.io/images/band-all-of-me.jpg">
+<meta property="og:image" content="https://soneando.github.io/images/live-cafelavida.jpg">
 <meta name="twitter:card" content="summary_large_image">
 
 <style>
@@ -50,6 +50,21 @@ header{padding:clamp(58px,12vw,96px) 0 8px;text-align:center}
 .f7{color:var(--orange); transform:scale(.70,1.98) rotate(-3deg)}
 .f8{color:var(--violet); transform:scale(.70,2.12) rotate(2deg)}
 .alt{margin-top:16px;font-size:12px;color:var(--muted);letter-spacing:.14em}
+
+/* ライブ写真のカルーセル。指でスワイプするだけ——JSもライブラリも使わない。
+   自動送りはしない（読んでいる最中に動くと、下の日付を読む邪魔になる） */
+.shots{
+  display:flex; gap:8px; margin-top:26px; padding-bottom:10px;
+  overflow-x:auto; scroll-snap-type:x mandatory;
+  -webkit-overflow-scrolling:touch; scrollbar-width:none;
+}
+.shots::-webkit-scrollbar{display:none}
+.shots figure{flex:0 0 100%; scroll-snap-align:center; border-radius:12px; overflow:hidden}
+.shots img{display:block; width:100%; aspect-ratio:3/2; object-fit:cover; background:var(--card)}
+/* 何枚あるか・いま何枚目かを示す点。スクロール量から連動させる */
+.dots{display:flex; justify-content:center; gap:7px; margin-top:2px}
+.dots i{width:6px; height:6px; border-radius:50%; background:var(--line); transition:background .2s}
+.dots i.on{background:var(--magenta)}
 
 .tagline{margin-top:30px;text-align:center}
 .tagline .en{font-family:"Anton";font-size:clamp(19px,5.2vw,26px);letter-spacing:.02em;line-height:1.28}
@@ -96,9 +111,8 @@ h2{
 .night .contact a{color:var(--cyan);text-decoration:none}
 .night .map{display:inline-block;margin-top:8px;font-size:13px;color:var(--cyan);text-decoration:none}
 
-/* メンバー。写真＋2列で縦を詰める */
-.band{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
-.band img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+/* メンバー。2列で縦を詰める（写真はページ頭のカルーセルに集約した） */
+.band{background:var(--card);border:1px solid var(--line);border-radius:12px}
 .members{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;padding:18px 20px 20px}
 .members li{line-height:1.35}
 .members .n{font-size:15px}
@@ -125,6 +139,15 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
     <div class="en">REAL CUBAN SON &amp; SALSA<br>— LIVE IN TOKYO</div>
     <div class="ja">東京で聴ける、本場のキューバ音楽。<br>六本木と広尾で毎月やっています。</div>
   </div>
+
+  <!-- 1枚目だけ先に読み、残りはスワイプされてから取りに行く -->
+  <div class="shots" id="shots">
+    <figure><img src="images/live-allofme.jpg" fetchpriority="high"
+      alt="SONEANDO at All of Me Club in Roppongi — four musicians beside a grand piano and a pair of congas, under the club sign."></figure>
+    <figure><img src="images/live-cafelavida.jpg" loading="lazy"
+      alt="SONEANDO at Cafe La Vida in Hiroo — four musicians in front of the restaurant's neon sign and brick wall, with a double bass behind them."></figure>
+  </div>
+  <div class="dots" id="dots"></div>
 </header>
 
 <h2>Shows／ライブ予定</h2>
@@ -162,8 +185,6 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
 
 <h2>Band／メンバー</h2>
 <div class="band">
-  <img src="images/band-all-of-me.jpg"
-       alt="The four members of SONEANDO on stage at All of Me Club in Roppongi, Tokyo, standing behind a pair of congas under the club sign.">
   <ul class="members">
     <li><span class="n">Papo</span><span class="inst">Vocal, Conga</span></li>
     <li><span class="n">Jose</span><span class="inst">Trumpet, Percussion</span></li>
@@ -186,6 +207,20 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
 </div>
 
 <script>
+/* カルーセルの点。スクロール位置から今どこかを出すだけで、自動送りはしない */
+(function(){
+  const box = document.getElementById("shots"), dots = document.getElementById("dots");
+  const n = box.children.length;
+  if (n < 2) return;
+  for (let i = 0; i < n; i++) dots.appendChild(document.createElement("i"));
+  const sync = () => {
+    const i = Math.round(box.scrollLeft / box.clientWidth);
+    [...dots.children].forEach((d, j) => d.classList.toggle("on", j === i));
+  };
+  box.addEventListener("scroll", sync, { passive:true });
+  sync();
+})();
+
 /* =====================================================================
    毎月ここだけ書き換える。過去のものは消してよい。
    date "YYYY-MM-DD" / start は1stステージの開始時刻
