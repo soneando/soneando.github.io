@@ -1,0 +1,285 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>SONEANDO — Live Cuban Music in Tokyo | 六本木・広尾のキューバ音楽</title>
+<meta name="description" content="Live Cuban son and salsa in Tokyo. Roppongi every 4th Wednesday at All of Me Club, a 30-year-old jazz bar, and Hiroo at Cafe La Vida, a Cuban restaurant. 本場のキューバ音楽を、六本木のジャズバーと広尾のキューバ料理店で。毎月。">
+<meta property="og:title" content="SONEANDO — Live Cuban Music in Tokyo">
+<meta property="og:description" content="Live Cuban son and salsa in Tokyo. Roppongi and Hiroo, every month.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://soneando.github.io/">
+<!-- SNSは相対パスを拾えないので絶対URL。独自ドメインに移したらここも変える -->
+<meta property="og:image" content="https://soneando.github.io/images/band-all-of-me.jpg">
+<meta name="twitter:card" content="summary_large_image">
+
+<style>
+/* Anton は Tシャツ用に字形を絞った版。大文字と数字だけに使う（小文字は入っていない） */
+@font-face { font-family:"Anton"; src:url("fonts/Anton.woff2") format("woff2"); font-display:swap; }
+
+:root{
+  --body:system-ui,-apple-system,"Hiragino Sans","Noto Sans JP","Helvetica Neue",sans-serif;
+  --magenta:#D42A7C; --cyan:#4FB7D6; --orange:#E4502A; --violet:#9B4FD1;
+  --bg:#0B0B0D; --card:#16161A; --line:#2A2A31;
+  --fg:#F4F1EA; --muted:#9A968D;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{
+  background:var(--bg); color:var(--fg); font-family:var(--body);
+  font-weight:400; line-height:1.7; letter-spacing:.01em;
+}
+.wrap{max-width:640px;margin:0 auto;padding:0 20px 72px}
+a{color:inherit}
+
+/* ロゴ（Tシャツと同じ Fania 型・4色ローテーション）。
+   縦2.25倍に伸ばしてあるので、文字が自分のボックスの上へはみ出す。
+   はみ出し量は font-size にほぼ比例するので、上の余白も同じように連動させる */
+header{padding:clamp(58px,12vw,96px) 0 8px;text-align:center}
+.logo{display:flex;justify-content:center;align-items:flex-end;white-space:nowrap}
+.logo span{
+  font-family:"Anton"; font-size:clamp(38px,10.5vw,74px); line-height:.78;
+  display:inline-block; transform-origin:bottom center; margin-right:-.07em;
+}
+.f1{color:var(--magenta);transform:scale(.70,2.05) rotate(-3.5deg)}
+.f2{color:var(--cyan);   transform:scale(.70,2.20) rotate(2.5deg)}
+.f3{color:var(--orange); transform:scale(.70,1.95) rotate(-1.5deg)}
+.f4{color:var(--violet); transform:scale(.70,2.25) rotate(3deg)}
+.f5{color:var(--magenta);transform:scale(.70,2.00) rotate(-2.5deg)}
+.f6{color:var(--cyan);   transform:scale(.70,2.18) rotate(1.5deg)}
+.f7{color:var(--orange); transform:scale(.70,1.98) rotate(-3deg)}
+.f8{color:var(--violet); transform:scale(.70,2.12) rotate(2deg)}
+.alt{margin-top:16px;font-size:12px;color:var(--muted);letter-spacing:.14em}
+
+.tagline{margin-top:30px;text-align:center}
+.tagline .en{font-family:"Anton";font-size:clamp(19px,5.2vw,26px);letter-spacing:.02em;line-height:1.28}
+.tagline .ja{margin-top:11px;font-size:14px;color:var(--muted)}
+
+h2{
+  font-family:"Anton"; font-weight:400; font-size:13px; letter-spacing:.22em;
+  color:var(--muted); margin:52px 0 14px; text-transform:uppercase;
+}
+
+/* ライブ1件分のカード。予定は全件このカードで出す
+   ——「次回は行けないが次々回は予約したい」人を取りこぼさないため */
+.show{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:22px;border-top:3px solid var(--line)}
+.show + .show{margin-top:14px}
+.show.first{border-top-color:var(--magenta)}
+.show .tag{font-family:"Anton";font-size:11px;letter-spacing:.18em;color:var(--magenta);margin-bottom:10px}
+.show .when{font-family:"Anton";font-size:clamp(26px,7.2vw,38px);line-height:1.1}
+.show .dow{color:var(--magenta)}
+.show .when-en{display:block;margin-top:6px;font-family:var(--body);font-size:14px;color:var(--muted);letter-spacing:.04em}
+.show .title{margin-top:14px;font-size:19px;line-height:1.35}
+.show .where{margin-top:5px;font-size:15px;color:var(--muted)}
+.facts{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:14px}
+.facts dt{color:var(--muted)}
+.facts a{color:var(--cyan);text-decoration:none}
+.btn{display:block;margin-top:18px;padding:13px;text-align:center;background:var(--magenta);color:#fff;text-decoration:none;border-radius:8px;font-size:15px;letter-spacing:.03em}
+.reserve{display:block;margin-top:13px;text-align:center;font-size:13px;color:var(--cyan);text-decoration:none}
+
+/* 2つの店。箱に入れず、誌面の文章として置く */
+.lead{margin:-4px 0 4px;font-size:14px}
+.lead .en{color:var(--muted);font-size:13px}
+.night{padding:22px 0 6px}
+.night.b{border-top:1px solid var(--line);margin-top:16px}
+/* 店の写真を入れるときは .desc の前に <div class="shot"><img src="..." alt="..."></div>。
+   権利は店側にあるので、Junが自分で撮ったものか、店の許諾を取ったものだけ使う */
+.night .shot{margin:14px 0 2px;border-radius:10px;overflow:hidden}
+.night .shot img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.night .name{font-size:18px}
+.night .name .area{color:var(--muted);font-size:13px;margin-left:9px}
+.night .kind{margin-top:2px;font-size:12px;letter-spacing:.1em;color:var(--muted);text-transform:uppercase;font-family:"Anton"}
+.night .rhythm{margin-top:10px;font-size:13px;color:var(--cyan)}
+.night .desc{margin-top:10px;font-size:14px}
+.night .desc-en{margin-top:9px;font-size:13px;color:var(--muted);line-height:1.65}
+.night .contact{margin-top:13px;font-size:13px;color:var(--muted)}
+.night .contact a{color:var(--cyan);text-decoration:none}
+.night .map{display:inline-block;margin-top:8px;font-size:13px;color:var(--cyan);text-decoration:none}
+
+/* メンバー。写真＋2列で縦を詰める */
+.band{background:var(--card);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.band img{display:block;width:100%;aspect-ratio:4/3;object-fit:cover}
+.members{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:14px 18px;padding:18px 20px 20px}
+.members li{line-height:1.35}
+.members .n{font-size:15px}
+.members .inst{display:block;color:var(--muted);font-size:12px;letter-spacing:.02em}
+
+/* フォロー */
+.follow{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:24px 20px;text-align:center}
+.follow p{font-size:14px;color:var(--muted)}
+.follow .btn{background:var(--cyan);color:#08272F;max-width:290px;margin:16px auto 0}
+
+footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-height:2}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+
+<header>
+  <div class="logo">
+    <span class="f1">S</span><span class="f2">O</span><span class="f3">N</span><span class="f4">E</span><span class="f5">A</span><span class="f6">N</span><span class="f7">D</span><span class="f8">O</span>
+  </div>
+  <div class="tagline">
+    <div class="en">REAL CUBAN SON &amp; SALSA<br>— LIVE IN TOKYO</div>
+    <div class="ja">東京で聴ける、本場のキューバ音楽。<br>六本木と広尾で毎月やっています。</div>
+  </div>
+</header>
+
+<h2>Shows／ライブ予定</h2>
+<div id="shows"></div>
+
+<h2>Venues／会場</h2>
+<p class="lead">同じバンドですが、2軒の夜はだいぶ違います。<br>
+  <span class="en">The same band — two very different nights.</span></p>
+
+<div class="night a">
+  <div class="name">All of Me Club<span class="area">六本木 / Roppongi</span></div>
+  <div class="kind">Jazz Bar</div>
+  <div class="rhythm">毎月 第4水曜日 ／ Every 4th Wednesday</div>
+  <div class="desc">六本木で30年つづくジャズバー。生ピアノと長いバーカウンター、ボローニャで19年修行したシェフの料理。ふだんはほぼ毎晩ジャズの店ですが、月に一度の水曜だけ、ここがキューバになります。</div>
+  <div class="desc-en">A jazz bar with thirty years in Roppongi — grand piano, a long bar, food by a chef who trained nineteen years in Bologna. Most nights it's jazz. One Wednesday a month, it's Cuba.</div>
+  <div class="contact">
+    <a href="https://www.allofmeclub.net/" target="_blank" rel="noopener">allofmeclub.net</a><br>
+    予約なしで入れます（席は予約の方が優先） / Walk-ins welcome, reserved guests seated first<br>
+    <a href="tel:0334031947">03-3403-1947</a> ／ <a href="https://www.tablecheck.com/en/allofmeclub" target="_blank" rel="noopener">オンライン予約 / Book online (EN)</a>
+  </div>
+  <a class="map" href="https://www.google.com/maps/search/?api=1&query=All+of+Me+Club+%E5%85%AD%E6%9C%AC%E6%9C%A8" target="_blank" rel="noopener">Googleマップで開く / Open in Maps →</a>
+</div>
+
+<div class="night b">
+  <div class="name">Cafe La Vida<span class="area">広尾 / Hiroo</span></div>
+  <div class="kind">Cuban Restaurant</div>
+  <div class="desc">広尾駅から3分、階段を降りた先のキューバ料理店。黒豆ごはん、揚げバナナ、じっくり焼いた豚に冷えたモヒート。まず食事がおいしい店です。食べて飲んでいるうちにバンドが始まって、気づけば踊っている人がいます。</div>
+  <div class="desc-en">A Cuban restaurant down a flight of stairs, three minutes from Hiroo station. Black bean rice, fried plantains, slow-roasted pork, cold mojitos — come hungry. The band starts somewhere between dinner and the next round, and people end up dancing.</div>
+  <div class="contact">
+    <a href="https://cafelavida.tokyo/" target="_blank" rel="noopener">cafelavida.tokyo</a><br>
+    <a href="tel:0334442525">03-3444-2525</a> ／ <a href="https://cafelavida.tokyo/contact/" target="_blank" rel="noopener">お問い合わせ / Contact</a>
+  </div>
+  <a class="map" href="https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE" target="_blank" rel="noopener">Googleマップで開く / Open in Maps →</a>
+</div>
+
+<h2>Band／メンバー</h2>
+<div class="band">
+  <img src="images/band-all-of-me.jpg"
+       alt="The four members of SONEANDO on stage at All of Me Club in Roppongi, Tokyo, standing behind a pair of congas under the club sign.">
+  <ul class="members">
+    <li><span class="n">Papo</span><span class="inst">Vocal, Conga</span></li>
+    <li><span class="n">Jose</span><span class="inst">Trumpet, Percussion</span></li>
+    <li><span class="n">Naho</span><span class="inst">Piano</span></li>
+    <li><span class="n">Udon</span><span class="inst">Bass</span></li>
+  </ul>
+</div>
+
+<h2>Follow／次回の告知</h2>
+<div class="follow">
+  <p>次のライブはInstagramでお知らせします。<br>We announce every show on Instagram.</p>
+  <a class="btn" href="https://instagram.com/dimelo_soneando" target="_blank" rel="noopener">@dimelo_soneando</a>
+</div>
+
+<footer>
+  SONEANDO — Live Cuban Music in Tokyo<br>
+  Roppongi &amp; Hiroo, monthly
+</footer>
+
+</div>
+
+<script>
+/* =====================================================================
+   毎月ここだけ書き換える。過去のものは消してよい。
+   date "YYYY-MM-DD" / start は1stステージの開始時刻
+   sets・lesson・note は無ければ省略してよい
+   ===================================================================== */
+const SHOWS = [
+  {
+    date:"2026-08-26", open:"18:00", start:"19:15",
+    venue:"All of Me Club", area:"六本木 / Roppongi",
+    title:"Cuba Night with Soneando",
+    charge:"¥4,000 ＋ 2オーダー<br><span style='color:var(--muted)'>plus a two-item minimum (food or drink)</span>",
+    price:4000,
+    sets:"19:15 / 20:30 / 21:45",
+    note:"入れ替えなし / No seat turnover",
+    map:"https://www.google.com/maps/search/?api=1&query=All+of+Me+Club+%E5%85%AD%E6%9C%AC%E6%9C%A8"
+  },
+  {
+    date:"2026-08-29", open:"18:00", start:"20:00",
+    venue:"Cafe La Vida", area:"広尾 / Hiroo",
+    title:"The Cuban Spirit “THE JIMAGUA SHOW”",
+    charge:"¥3,500",
+    price:3500,
+    lesson:"19:30 – 20:00",
+    map:"https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE"
+  },
+];
+
+/* 予約は会場ごと。SHOWS の venue 名と一致させる */
+const VENUES = {
+  /* walkin:true = 予約なしで入れる。訪日客には予約導線より効くので、そう書けるところは必ず書く */
+  "All of Me Club": { walkin:true, book:"https://www.tablecheck.com/en/allofmeclub", tel:"03-3403-1947" },
+  "Cafe La Vida":   {             book:"https://cafelavida.tokyo/contact/",          tel:"03-3444-2525"  },
+};
+
+const DOW_JA = ["日","月","火","水","木","金","土"];
+const DOW_EN = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
+
+const today = new Date(); today.setHours(0,0,0,0);
+const future = SHOWS
+  .map(s => ({ ...s, dt: new Date(s.date + "T" + s.start + ":00+09:00") }))
+  .filter(s => s.dt >= today)
+  .sort((a,b) => a.dt - b.dt);
+
+const row = (dt, dd) => `<dt>${dt}</dt><dd>${dd}</dd>`;
+
+function card(s, isFirst) {
+  const d = s.dt, v = VENUES[s.venue] || {};
+  let facts = "";
+  facts += row("開場 / Doors", s.open);
+  if (s.lesson) facts += row("ダンスレッスン<br>Dance lesson", `${s.lesson}<br><span style="color:var(--muted)">初めての方向け / for beginners</span>`);
+  facts += row("開演 / Start", s.sets ? s.sets : s.start);
+  facts += row("チャージ / Cover", s.charge);
+  if (s.note) facts += row("", s.note);
+  facts += row("予約 / Booking", v.walkin
+    ? `予約なしで入れます<br><span style="color:var(--muted)">Walk-ins welcome — reserved guests are seated first</span>`
+    : `会場へお問い合わせください<br><span style="color:var(--muted)">Please contact the venue</span>`);
+  if (v.tel) facts += row("電話 / Phone", `<a href="tel:${v.tel.replace(/-/g,"")}">${v.tel}</a>`);
+
+  return `<div class="show${isFirst ? " first" : ""}">
+    ${isFirst ? `<div class="tag">NEXT／次回</div>` : ""}
+    <div class="when">${d.getMonth()+1}月${d.getDate()}日 <span class="dow">(${DOW_JA[d.getDay()]})</span>
+      <span class="when-en">${DOW_EN[d.getDay()]}, ${d.toLocaleDateString("en-US",{month:"long",day:"numeric"})}</span></div>
+    <div class="title">${s.title}</div>
+    <div class="where">${s.venue} — ${s.area}</div>
+    <dl class="facts">${facts}</dl>
+    <a class="btn" href="${s.map}" target="_blank" rel="noopener">地図を開く / Open in Maps</a>
+    ${v.book ? `<a class="reserve" href="${v.book}" target="_blank" rel="noopener">${v.walkin ? "席を取っておきたい方はこちら / Reserve a table" : "予約・お問い合わせ / Reserve or ask"}</a>` : ""}
+  </div>`;
+}
+
+if (future.length) {
+  document.getElementById("shows").innerHTML = future.map((s,i) => card(s, i === 0)).join("");
+
+  /* 検索エンジンと、旅行者が使うAIアシスタントに「実体のある定期イベント」と伝える */
+  const ld = future.map(s => ({
+    "@context":"https://schema.org", "@type":"MusicEvent",
+    name:`${s.title} — SONEANDO`,
+    startDate:s.dt.toISOString(),
+    eventStatus:"https://schema.org/EventScheduled",
+    eventAttendanceMode:"https://schema.org/OfflineEventAttendanceMode",
+    location:{ "@type":"Place", name:s.venue,
+      address:{ "@type":"PostalAddress", addressLocality:"Minato", addressRegion:"Tokyo", addressCountry:"JP" } },
+    performer:{ "@type":"MusicGroup", name:"SONEANDO", genre:"Cuban, Son, Salsa" },
+    offers:{ "@type":"Offer", price:String(s.price), priceCurrency:"JPY" }
+  }));
+  const tag = document.createElement("script");
+  tag.type = "application/ld+json";
+  tag.textContent = JSON.stringify(ld);
+  document.head.appendChild(tag);
+} else {
+  document.getElementById("shows").innerHTML =
+    `<div class="show"><div class="where">次の日程が決まり次第、Instagramでお知らせします。<br>Next dates will be announced on Instagram.</div></div>`;
+}
+</script>
+
+</body>
+</html>
