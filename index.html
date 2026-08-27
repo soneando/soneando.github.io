@@ -51,8 +51,7 @@ header{padding:clamp(58px,12vw,96px) 0 8px;text-align:center}
 .f8{color:var(--violet); transform:scale(.70,2.12) rotate(2deg)}
 .alt{margin-top:16px;font-size:12px;color:var(--muted);letter-spacing:.14em}
 
-/* ライブ写真のカルーセル。指でスワイプするだけ——JSもライブラリも使わない。
-   自動送りはしない（読んでいる最中に動くと、下の日付を読む邪魔になる） */
+/* ライブ写真のカルーセル。指でスワイプできて、置いておくと勝手に送る。ライブラリは使わない */
 .shots{
   display:flex; gap:8px; margin-top:26px; padding-bottom:10px;
   overflow-x:auto; scroll-snap-type:x mandatory;
@@ -91,6 +90,14 @@ h2{
 .facts a{color:var(--cyan);text-decoration:none}
 .btn{display:block;margin-top:18px;padding:13px;text-align:center;background:var(--magenta);color:#fff;text-decoration:none;border-radius:8px;font-size:15px;letter-spacing:.03em}
 .reserve{display:block;margin-top:13px;text-align:center;font-size:13px;color:var(--cyan);text-decoration:none}
+
+/* これまでのライブ。カードにせず行だけで積む——「毎月やっている」を裏付ける材料なので、
+   SHOWS から過去分を消さずに残す。増えすぎたら PAST_MAX 件でとめて残数だけ出す */
+.past{list-style:none;font-size:13px;color:var(--muted)}
+.past li{display:grid;grid-template-columns:5.6em 1fr;gap:12px;padding:10px 0;border-top:1px solid var(--line);line-height:1.5}
+.past li:first-child{border-top:none;padding-top:2px}
+.past .d{color:var(--fg);letter-spacing:.02em;white-space:nowrap}
+.past .v{color:var(--fg)}
 
 /* 2つの店。箱に入れず、誌面の文章として置く */
 .night{padding:6px 0}
@@ -144,6 +151,8 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
       alt="SONEANDO at All of Me Club in Roppongi — four musicians beside a grand piano and a pair of congas, under the club sign."></figure>
     <figure><img src="images/live-cafelavida.jpg" loading="lazy"
       alt="SONEANDO at Cafe La Vida in Hiroo — four musicians in front of the restaurant's neon sign and brick wall, with a double bass behind them."></figure>
+    <figure><img src="images/live-onstage.jpg" loading="lazy"
+      alt="A SONEANDO musician mid-performance, head down over his instrument in a black leather jacket, with a double bass and softly lit percussion behind him."></figure>
     <figure><img src="images/live-bass.jpg" loading="lazy"
       alt="A double bass player mid-performance at Cafe La Vida in Hiroo, under the restaurant's neon sign, with timbales beside him."></figure>
   </div>
@@ -152,6 +161,7 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
 
 <h2>Shows／ライブ予定</h2>
 <div id="shows"></div>
+<div id="past"></div>
 
 <h2>Venues／会場</h2>
 <div class="night a">
@@ -193,7 +203,7 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
 <h2>Follow／次回の告知</h2>
 <div class="follow">
   <p>次のライブはInstagramでお知らせします。<br>We announce every show on Instagram.</p>
-  <a class="btn" href="https://instagram.com/dimelo_soneando" target="_blank" rel="noopener">@dimelo_soneando</a>
+  <a class="btn" href="https://www.instagram.com/dimelo_soneand/" target="_blank" rel="noopener">@dimelo_soneand</a>
 </div>
 
 <footer>
@@ -204,24 +214,47 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
 </div>
 
 <script>
-/* カルーセルの点。スクロール位置から今どこかを出すだけで、自動送りはしない */
+/* カルーセル。点の同期と自動送り。
+   自動送りは元々入れていなかった——動くものが視界にあると、下のライブ日程を読む邪魔になるため。
+   入れるにあたって、その邪魔をしない条件を3つ付けてある（下の HOLD 以降）。 */
 (function(){
   const box = document.getElementById("shots"), dots = document.getElementById("dots");
   const n = box.children.length;
   if (n < 2) return;
   for (let i = 0; i < n; i++) dots.appendChild(document.createElement("i"));
-  const sync = () => {
-    const i = Math.round(box.scrollLeft / box.clientWidth);
-    [...dots.children].forEach((d, j) => d.classList.toggle("on", j === i));
-  };
+  /* 1枚ぶんの移動量は「写真の幅＋隙間」。clientWidth だけで測ると隙間の分ずつずれる */
+  const step = () => box.children[1].offsetLeft - box.children[0].offsetLeft;
+  const at = () => Math.round(box.scrollLeft / step());
+  const sync = () => [...dots.children].forEach((d, j) => d.classList.toggle("on", j === at()));
   box.addEventListener("scroll", sync, { passive:true });
   sync();
+
+  /* 端末側で「動きを減らす」が入っているなら送らない。目が回る人がいる */
+  if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+
+  const HOLD = 5000;         /* 1枚あたり */
+  const AFTER_TOUCH = 8000;  /* 手で動かした後、これだけ黙る。勝手に飛ぶと操作と喧嘩する */
+  let touched = 0, onScreen = true;
+
+  ["pointerdown","touchstart","wheel"].forEach(e =>
+    box.addEventListener(e, () => touched = Date.now(), { passive:true }));
+
+  /* 写真が画面から外れたら止める。ライブ日程を読んでいる間は動かさない */
+  if ("IntersectionObserver" in window)
+    new IntersectionObserver(([e]) => onScreen = e.isIntersecting, { threshold:.4 }).observe(box);
+
+  setInterval(() => {
+    if (!onScreen || document.hidden) return;             /* 裏タブでも回さない */
+    if (Date.now() - touched < AFTER_TOUCH) return;
+    box.scrollTo({ left: ((at() + 1) % n) * step(), behavior:"smooth" });
+  }, HOLD);
 })();
 
 /* =====================================================================
-   毎月ここだけ書き換える。過去のものは消してよい。
+   毎月ここだけ書き換える。過去のものは消さない（下の Past に自動で落ちる）。
    date "YYYY-MM-DD" / start は1stステージの開始時刻
    sets・lesson・note は無ければ省略してよい
+   日程だけ決まって中身が未定なら tbd:true。start・charge・title を省ける
    ===================================================================== */
 const SHOWS = [
   {
@@ -243,6 +276,22 @@ const SHOWS = [
     lesson:"19:30 – 20:00",
     map:"https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE"
   },
+  {
+    date:"2026-09-06",
+    venue:"Cafe La Vida", area:"広尾 / Hiroo",
+    tbd:true,
+    map:"https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE"
+  },
+  {
+    date:"2026-09-23", open:"18:00", start:"19:15",
+    venue:"All of Me Club", area:"六本木 / Roppongi",
+    title:"Cuba Night with Soneando",
+    charge:"¥4,000 ＋ 2オーダー<br><span style='color:var(--muted)'>plus a two-item minimum (food or drink)</span>",
+    price:4000,
+    sets:"19:15 / 20:30 / 21:45",
+    note:"入れ替えなし / No seat turnover",
+    map:"https://www.google.com/maps/search/?api=1&query=All+of+Me+Club+%E5%85%AD%E6%9C%AC%E6%9C%A8"
+  },
 ];
 
 /* 予約は会場ごと。SHOWS の venue 名と一致させる */
@@ -255,22 +304,30 @@ const VENUES = {
 const DOW_JA = ["日","月","火","水","木","金","土"];
 const DOW_EN = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
+/* 過ぎた日程は消さずに「これまでのライブ」へ落とす。何件まで出すか */
+const PAST_MAX = 12;
+
 const today = new Date(); today.setHours(0,0,0,0);
-const future = SHOWS
-  .map(s => ({ ...s, dt: new Date(s.date + "T" + s.start + ":00+09:00") }))
-  .filter(s => s.dt >= today)
-  .sort((a,b) => a.dt - b.dt);
+/* start 未定（tbd）でも並べ替えできるよう、内部的にだけ仮の時刻を置く。画面には出さない */
+const all = SHOWS.map(s => ({ ...s, dt: new Date(s.date + "T" + (s.start || "19:00") + ":00+09:00") }));
+const future = all.filter(s => s.dt >= today).sort((a,b) => a.dt - b.dt);
+const past   = all.filter(s => s.dt <  today).sort((a,b) => b.dt - a.dt);
 
 const row = (dt, dd) => `<dt>${dt}</dt><dd>${dd}</dd>`;
 
 function card(s, isFirst) {
   const d = s.dt, v = VENUES[s.venue] || {};
   let facts = "";
-  facts += row("開場 / Doors", s.open);
-  if (s.lesson) facts += row("ダンスレッスン<br>Dance lesson", `${s.lesson}<br><span style="color:var(--muted)">初めての方向け / for beginners</span>`);
-  facts += row("開演 / Start", s.sets ? s.sets : s.start);
-  facts += row("チャージ / Cover", s.charge);
-  if (s.note) facts += row("", s.note);
+  if (s.tbd) {
+    /* 日付だけ押さえてある回。空欄を並べるより1行で未定と言うほうが親切 */
+    facts += row("詳細 / Details", `決まり次第お知らせします<br><span style="color:var(--muted)">Times and cover to be announced</span>`);
+  } else {
+    facts += row("開場 / Doors", s.open);
+    if (s.lesson) facts += row("ダンスレッスン<br>Dance lesson", `${s.lesson}<br><span style="color:var(--muted)">初めての方向け / for beginners</span>`);
+    facts += row("開演 / Start", s.sets ? s.sets : s.start);
+    facts += row("チャージ / Cover", s.charge);
+    if (s.note) facts += row("", s.note);
+  }
   facts += row("予約 / Booking", v.walkin
     ? `予約なしで入れます<br><span style="color:var(--muted)">Walk-ins welcome — reserved guests are seated first</span>`
     : `会場へお問い合わせください<br><span style="color:var(--muted)">Please contact the venue</span>`);
@@ -280,8 +337,8 @@ function card(s, isFirst) {
     ${isFirst ? `<div class="tag">NEXT／次回</div>` : ""}
     <div class="when">${d.getMonth()+1}月${d.getDate()}日 <span class="dow">(${DOW_JA[d.getDay()]})</span>
       <span class="when-en">${DOW_EN[d.getDay()]}, ${d.toLocaleDateString("en-US",{month:"long",day:"numeric"})}</span></div>
-    <div class="title">${s.title}</div>
-    <div class="where">${s.venue} — ${s.area}</div>
+    ${s.title ? `<div class="title">${s.title}</div><div class="where">${s.venue} — ${s.area}</div>`
+              : `<div class="title">${s.venue}</div><div class="where">${s.area}</div>`}
     <dl class="facts">${facts}</dl>
     <a class="btn" href="${s.map}" target="_blank" rel="noopener">地図を開く / Open in Maps</a>
     ${v.book ? `<a class="reserve" href="${v.book}" target="_blank" rel="noopener">${v.walkin ? "席を取っておきたい方はこちら / Reserve a table" : "予約・お問い合わせ / Reserve or ask"}</a>` : ""}
@@ -292,7 +349,8 @@ if (future.length) {
   document.getElementById("shows").innerHTML = future.map((s,i) => card(s, i === 0)).join("");
 
   /* 検索エンジンと、旅行者が使うAIアシスタントに「実体のある定期イベント」と伝える */
-  const ld = future.map(s => ({
+  /* 未定の回は入れない。仮の時刻と価格を検索側に渡すことになるため */
+  const ld = future.filter(s => !s.tbd).map(s => ({
     "@context":"https://schema.org", "@type":"MusicEvent",
     name:`${s.title} — SONEANDO`,
     startDate:s.dt.toISOString(),
@@ -303,13 +361,30 @@ if (future.length) {
     performer:{ "@type":"MusicGroup", name:"SONEANDO", genre:"Cuban, Son, Salsa" },
     offers:{ "@type":"Offer", price:String(s.price), priceCurrency:"JPY" }
   }));
-  const tag = document.createElement("script");
-  tag.type = "application/ld+json";
-  tag.textContent = JSON.stringify(ld);
-  document.head.appendChild(tag);
+  if (ld.length) {
+    const tag = document.createElement("script");
+    tag.type = "application/ld+json";
+    tag.textContent = JSON.stringify(ld);
+    document.head.appendChild(tag);
+  }
 } else {
   document.getElementById("shows").innerHTML =
     `<div class="show"><div class="where">次の日程が決まり次第、Instagramでお知らせします。<br>Next dates will be announced on Instagram.</div></div>`;
+}
+
+/* これまでのライブ。日付・会場・イベント名だけの1行。予定と同じカードにはしない
+   ——探しているのは「次いつ」なので、過去が同じ重さで並ぶと予定が埋もれる */
+if (past.length) {
+  const rows = past.slice(0, PAST_MAX).map(s => {
+    const d = s.dt;
+    return `<li><span class="d">${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}</span>` +
+           `<span><span class="v">${s.venue}</span> ${s.title}</span></li>`;
+  }).join("");
+  const rest = past.length - PAST_MAX;
+  document.getElementById("past").innerHTML =
+    `<h2>Past／これまでのライブ</h2><ul class="past">${rows}` +
+    (rest > 0 ? `<li><span></span><span>…ほか ${rest} 回 / and ${rest} more</span></li>` : "") +
+    `</ul>`;
 }
 </script>
 
