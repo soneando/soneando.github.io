@@ -297,8 +297,8 @@ const SHOWS = [
 /* 予約は会場ごと。SHOWS の venue 名と一致させる */
 const VENUES = {
   /* walkin:true = 予約なしで入れる。訪日客には予約導線より効くので、そう書けるところは必ず書く */
-  "All of Me Club": { walkin:true, book:"https://www.tablecheck.com/en/allofmeclub", tel:"03-3403-1947" },
-  "Cafe La Vida":   {             book:"https://cafelavida.tokyo/contact/",          tel:"03-3444-2525"  },
+  "All of Me Club": { walkin:true, book:"https://www.tablecheck.com/en/allofmeclub", tel:"03-3403-1947", site:"https://www.allofmeclub.net/" },
+  "Cafe La Vida":   {             book:"https://cafelavida.tokyo/contact/",          tel:"03-3444-2525",  site:"https://cafelavida.tokyo/"     },
 };
 
 const DOW_JA = ["日","月","火","水","木","金","土"];
@@ -332,6 +332,9 @@ function card(s, isFirst) {
     ? `予約なしで入れます<br><span style="color:var(--muted)">Walk-ins welcome — reserved guests are seated first</span>`
     : `会場へお問い合わせください<br><span style="color:var(--muted)">Please contact the venue</span>`);
   if (v.tel) facts += row("電話 / Phone", `<a href="tel:${v.tel.replace(/-/g,"")}">${v.tel}</a>`);
+  /* 会場のサイト。リンク文字はドメインにする——どこへ飛ぶか読んで分かるほうが押される */
+  if (v.site) facts += row("サイト / Website",
+    `<a href="${v.site}" target="_blank" rel="noopener">${v.site.replace(/^https?:\/\/(www\.)?/,"").replace(/\/$/,"")}</a>`);
 
   return `<div class="show${isFirst ? " first" : ""}">
     ${isFirst ? `<div class="tag">NEXT／次回</div>` : ""}
@@ -357,6 +360,8 @@ if (future.length) {
     eventStatus:"https://schema.org/EventScheduled",
     eventAttendanceMode:"https://schema.org/OfflineEventAttendanceMode",
     location:{ "@type":"Place", name:s.venue,
+      /* サイト未登録なら undefined。JSON.stringify がキーごと落とすのでそのまま渡してよい */
+      url:(VENUES[s.venue] || {}).site,
       address:{ "@type":"PostalAddress", addressLocality:"Minato", addressRegion:"Tokyo", addressCountry:"JP" } },
     performer:{ "@type":"MusicGroup", name:"SONEANDO", genre:"Cuban, Son, Salsa" },
     offers:{ "@type":"Offer", price:String(s.price), priceCurrency:"JPY" }
