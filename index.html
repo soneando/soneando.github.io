@@ -277,9 +277,11 @@ const SHOWS = [
     map:"https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE"
   },
   {
-    date:"2026-09-06",
+    date:"2026-09-06", open:"18:00", start:"19:00",
     venue:"Cafe La Vida", area:"広尾 / Hiroo",
-    tbd:true,
+    title:"Cuban Night by Dimelo Sonean2",
+    charge:"¥2,500",
+    price:2500,
     map:"https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE"
   },
   {
@@ -322,7 +324,7 @@ function card(s, isFirst) {
     /* 日付だけ押さえてある回。空欄を並べるより1行で未定と言うほうが親切 */
     facts += row("詳細 / Details", `決まり次第お知らせします<br><span style="color:var(--muted)">Times and cover to be announced</span>`);
   } else {
-    facts += row("開場 / Doors", s.open);
+    if (s.open) facts += row("開場 / Doors", s.open);
     if (s.lesson) facts += row("ダンスレッスン<br>Dance lesson", `${s.lesson}<br><span style="color:var(--muted)">初めての方向け / for beginners</span>`);
     facts += row("開演 / Start", s.sets ? s.sets : s.start);
     facts += row("チャージ / Cover", s.charge);
