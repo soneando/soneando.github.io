@@ -98,6 +98,17 @@ h2{
 .past li:first-child{border-top:none;padding-top:2px}
 .past .d{color:var(--fg);letter-spacing:.02em;white-space:nowrap}
 .past .v{color:var(--fg)}
+/* 写真のある回だけ、行を押すと開く。普段は閉じておく——予定を探す人の邪魔をしないため */
+.past li.has{display:block}
+.past summary{display:grid;grid-template-columns:5.6em 1fr auto;gap:12px;cursor:pointer;list-style:none}
+.past summary::-webkit-details-marker{display:none}
+.past .ph{font-family:"Anton";font-size:11px;letter-spacing:.14em;color:var(--cyan);padding-top:2px;white-space:nowrap}
+.past details[open] .ph{color:var(--magenta)}
+/* 開いた先は横スワイプ。次の1枚を少し覗かせて、まだあると分からせる */
+.past .roll{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
+.past .roll::-webkit-scrollbar{display:none}
+.past .roll img{flex:0 0 86%;width:86%;scroll-snap-align:start;aspect-ratio:3/2;object-fit:cover;border-radius:8px;background:var(--card)}
+.past .roll img:only-child{flex-basis:100%;width:100%}
 
 /* 2つの店。箱に入れず、誌面の文章として置く */
 .night{padding:6px 0}
@@ -259,6 +270,8 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
    date "YYYY-MM-DD" / start は1stステージの開始時刻
    sets・lesson・note は無ければ省略してよい
    日程だけ決まって中身が未定なら tbd:true。start・charge・title を省ける
+   終わった回に写真を足すなら photos:[{ src:"画像のパス", alt:"英語・個人名なし" }]。画像は images/ の下に past-日付-連番.jpg
+   （ここに画像パスの形そのものを書かない。deploy.sh が参照中の画像と見なして探し、無いと止まる）
    ===================================================================== */
 const SHOWS = [
   {
@@ -286,6 +299,10 @@ const SHOWS = [
     title:"Cuban Night by Dimelo Sonean2",
     charge:"¥2,500",
     price:2500,
+    photos:[
+      { src:"images/past-2026-09-06-1.jpg",
+        alt:"SONEANDO at Cafe La Vida in Hiroo — trumpet, keyboard, congas and double bass on a small stage under the restaurant's neon sign, against a brick wall." },
+    ],
     map:"https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE"
   },
   {
@@ -384,18 +401,27 @@ if (future.length) {
 }
 
 /* これまでのライブ。日付・会場・イベント名だけの1行。予定と同じカードにはしない
-   ——探しているのは「次いつ」なので、過去が同じ重さで並ぶと予定が埋もれる */
+   ——探しているのは「次いつ」なので、過去が同じ重さで並ぶと予定が埋もれる。
+   写真のある回は行が開閉でき、開くとその回の写真が出る。「毎月やっている」の証拠を文字から写真にする */
 if (past.length) {
   const rows = past.slice(0, PAST_MAX).map(s => {
     const d = s.dt;
-    return `<li><span class="d">${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}</span>` +
-           `<span><span class="v">${s.venue}</span> ${s.title}</span></li>`;
+    const line = `<span class="d">${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}</span>` +
+                 `<span><span class="v">${s.venue}</span> ${s.title || ""}</span>`;
+    if (!s.photos || !s.photos.length) return `<li>${line}</li>`;
+    /* src は開いたときに入れる。最初から入れると、開かない人にも全部落とさせることになる */
+    const imgs = s.photos.map(p => `<img data-src="${p.src}" alt="${p.alt}">`).join("");
+    return `<li class="has"><details><summary>${line}<span class="ph">PHOTOS ${s.photos.length}</span></summary>` +
+           `<div class="roll">${imgs}</div></details></li>`;
   }).join("");
   const rest = past.length - PAST_MAX;
   document.getElementById("past").innerHTML =
     `<h2>Past／これまでのライブ</h2><ul class="past">${rows}` +
     (rest > 0 ? `<li><span></span><span>…ほか ${rest} 回 / and ${rest} more</span></li>` : "") +
     `</ul>`;
+  document.querySelectorAll(".past details").forEach(el => el.addEventListener("toggle", () => {
+    if (el.open) el.querySelectorAll("img[data-src]").forEach(i => { i.src = i.dataset.src; i.removeAttribute("data-src"); });
+  }));
 }
 </script>
 
