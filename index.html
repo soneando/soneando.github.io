@@ -334,6 +334,52 @@ const VENUES = {
   "Cafe La Vida":   {             book:"https://cafelavida.tokyo/contact/",          tel:"03-3444-2525",  site:"https://cafelavida.tokyo/"     },
 };
 
+/* All of Me Club は毎月第4水曜の定例。未来は常に「次回とその次」の2回が出るよう、足りない分をここで作る
+   （2026-09-13 Jun：定例なので次回とその次まで載っていてほしい。毎月手で足す運用は止まるので自動にした）
+   - SHOWS に同じ日付の回を書けばそちらが優先（写真を付けた回・時間や料金が変わった回）
+   - 休みの月は skip に日付を足す。別の日に動いた月は skip に元の日付を足し、SHOWS にその回を書く
+   - 過ぎた自動の回は、そのまま「これまでのライブ」に積まれる
+   - 定例をやめるときは until に最後の日付を入れる */
+const REGULAR = {
+  from: "2026-11",        // これより前の回は SHOWS に手で書いてある
+  until: "",              // "YYYY-MM-DD"。空なら続く
+  nth: 4, weekday: 3,     // 第4・水曜（0=日）
+  ahead: 2,
+  skip: [],
+  show: {
+    open:"18:00", start:"19:15",
+    venue:"All of Me Club", area:"六本木 / Roppongi",
+    title:"Cuba Night with Soneando",
+    charge:"¥4,000 ＋ 2オーダー<br><span style='color:var(--muted)'>plus a two-item minimum (food or drink)</span>",
+    price:4000,
+    sets:"19:15 / 20:30 / 21:45",
+    note:"入れ替えなし / No seat turnover",
+    map:"https://www.google.com/maps/search/?api=1&query=All+of+Me+Club+%E5%85%AD%E6%9C%AC%E6%9C%A8"
+  },
+};
+
+function regularShows(today) {
+  const r = REGULAR, v = r.show.venue;
+  const jst = s => new Date(s.date + "T" + (s.start || "19:00") + ":00+09:00");
+  const mine = SHOWS.filter(s => s.venue === v);
+  const have = new Set(mine.map(s => s.date));
+  let need = r.ahead - mine.filter(s => jst(s) >= today).length;
+  let [y, m] = r.from.split("-").map(Number);
+  const out = [];
+  /* 日付は年月日の数だけで出す（見ている人の時差で1日ずれないように）。240か月で必ず止める */
+  for (let i = 0; i < 240 && need > 0; i++, m === 12 ? (y++, m = 1) : m++) {
+    const firstDow = new Date(Date.UTC(y, m - 1, 1)).getUTCDay();
+    const day = 1 + (r.weekday - firstDow + 7) % 7 + (r.nth - 1) * 7;
+    const date = `${y}-${String(m).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    if (r.until && date > r.until) break;
+    if (have.has(date) || r.skip.includes(date)) continue;
+    const s = { ...r.show, date };
+    out.push(s);
+    if (jst(s) >= today) need--;
+  }
+  return out;
+}
+
 const DOW_JA = ["日","月","火","水","木","金","土"];
 const DOW_EN = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 
@@ -342,7 +388,7 @@ const PAST_MAX = 12;
 
 const today = new Date(); today.setHours(0,0,0,0);
 /* start 未定（tbd）でも並べ替えできるよう、内部的にだけ仮の時刻を置く。画面には出さない */
-const all = SHOWS.map(s => ({ ...s, dt: new Date(s.date + "T" + (s.start || "19:00") + ":00+09:00") }));
+const all = [...SHOWS, ...regularShows(today)].map(s => ({ ...s, dt: new Date(s.date + "T" + (s.start || "19:00") + ":00+09:00") }));
 const future = all.filter(s => s.dt >= today).sort((a,b) => a.dt - b.dt);
 const past   = all.filter(s => s.dt <  today).sort((a,b) => b.dt - a.dt);
 
