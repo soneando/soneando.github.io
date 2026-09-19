@@ -497,12 +497,12 @@ if (past.length) {
     `<h2>Past／これまでのライブ</h2><ul class="past">${rows}` +
     (rest > 0 ? `<li><span></span><span>…ほか ${rest} 回 / and ${rest} more</span></li>` : "") +
     `</ul>`;
-  /* VIDEO と PHOTOS は別々に開閉する。動画は閉じたら iframe ごと捨てる（開いたままだと裏で音が鳴り続けるため） */
+  /* VIDEO と PHOTOS は同じ行の中でどちらか一方だけ開く（両方を同時に見る人はいない・Jun）。
+     片方を押すともう片方は閉じる。動画は閉じたら iframe ごと捨てる（開いたままだと裏で音が鳴り続けるため） */
   document.querySelectorAll(".past li.has").forEach(li => {
     const btns = li.querySelectorAll(".ph");
-    const toggle = b => {
+    const setOpen = (b, open) => {
       const pn = li.querySelector('.pn[data-k="' + b.dataset.k + '"]');
-      const open = pn.hidden;
       pn.hidden = !open;
       b.setAttribute("aria-expanded", open);
       if (b.dataset.k === "p") {
@@ -517,6 +517,11 @@ if (past.length) {
       f.title = "SONEANDO live video (Instagram)";
       f.allowFullscreen = true;
       clip.append(f);
+    };
+    const toggle = b => {
+      const open = b.getAttribute("aria-expanded") !== "true";
+      if (open) btns.forEach(o => { if (o !== b) setOpen(o, false); });
+      setOpen(b, open);
     };
     btns.forEach(b => b.addEventListener("click", e => { e.stopPropagation(); toggle(b); }));
     if (btns.length === 1) {
