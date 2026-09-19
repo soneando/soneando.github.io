@@ -98,21 +98,22 @@ h2{
 .past li:first-child{border-top:none;padding-top:2px}
 .past .d{color:var(--fg);letter-spacing:.02em;white-space:nowrap}
 .past .v{color:var(--fg)}
-/* 写真のある回だけ、行を押すと開く。普段は閉じておく——予定を探す人の邪魔をしないため */
+/* 写真か動画のある回だけ、右のタグ（VIDEO／PHOTOS）を押すと、そのタグの中身だけが開く。
+   普段は閉じておく——予定を探す人の邪魔をしないため。タグが1つだけの回は、行のどこを押しても開く */
 .past li.has{display:block}
-.past summary{display:grid;grid-template-columns:5.6em 1fr auto;gap:12px;cursor:pointer;list-style:none}
-.past summary::-webkit-details-marker{display:none}
-.past .ph{font-family:"Anton";font-size:11px;letter-spacing:.14em;color:var(--cyan);padding-top:2px;white-space:nowrap}
-.past details[open] .ph{color:var(--magenta)}
+.past .hd{display:grid;grid-template-columns:5.6em 1fr auto;gap:12px}
+.past .hd.one{cursor:pointer}
+.past .tags{display:flex;flex-direction:column;align-items:flex-end;margin-top:-5px}
+.past .ph{font:inherit;font-family:"Anton";font-size:11px;line-height:1.5;letter-spacing:.14em;color:var(--cyan);background:none;border:0;padding:6px 0 6px 12px;white-space:nowrap;cursor:pointer}
+.past .ph{position:relative}
+.past .ph::after{content:"";position:absolute;inset:-3px -8px -3px -14px}  /* 見た目は変えず、指で押せる面だけ広げる */
+.past .ph[aria-expanded="true"]{color:var(--magenta)}
 /* 開いた先は横スワイプ。次の1枚を少し覗かせて、まだあると分からせる */
 .past .roll{display:flex;gap:8px;margin-top:12px;overflow-x:auto;scroll-snap-type:x mandatory;scrollbar-width:none}
 .past .roll::-webkit-scrollbar{display:none}
 .past .roll img{flex:0 0 86%;width:86%;scroll-snap-align:start;aspect-ratio:3/2;object-fit:cover;border-radius:8px;background:var(--card)}
 .past .roll img:only-child{flex-basis:100%;width:100%}
 .past .clip{margin-top:12px}
-.past .roll + .clip{margin-top:16px}
-.past .play{font:inherit;font-size:13px;color:var(--cyan);background:none;border:0;padding:6px 0;cursor:pointer;text-align:left}
-.past .play:hover{color:var(--fg)}
 .past .clip iframe{display:block;position:relative;z-index:1;width:100%;height:100%;border:0;border-radius:8px}
 .past .clip.on{position:relative;max-width:340px;aspect-ratio:9/17.5;background:var(--card);border-radius:8px}
 .past .clip.on::before{content:"読み込み中… / Loading…";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px}
@@ -475,7 +476,7 @@ if (future.length) {
 
 /* これまでのライブ。日付・会場・イベント名だけの1行。予定と同じカードにはしない
    ——探しているのは「次いつ」なので、過去が同じ重さで並ぶと予定が埋もれる。
-   写真のある回は行が開閉でき、開くとその回の写真が出る。「毎月やっている」の証拠を文字から写真にする */
+   写真か動画のある回は、右のタグ（PHOTOS／VIDEO）を押すとそれぞれが開く。「毎月やっている」の証拠を文字から写真・動画にする */
 if (past.length) {
   const rows = past.slice(0, PAST_MAX).map(s => {
     const d = s.dt;
@@ -483,29 +484,47 @@ if (past.length) {
                  `<span><span class="v">${s.venue}</span> ${s.title || ""}</span>`;
     const n = s.photos ? s.photos.length : 0;
     if (!n && !s.reel) return `<li>${line}</li>`;
-    /* src は開いたときに入れる。最初から入れると、開かない人にも全部落とさせることになる */
-    const imgs = n ? `<div class="roll">${s.photos.map(p => `<img data-src="${p.src}" alt="${p.alt}">`).join("")}</div>` : "";
-    /* 動画はInstagramの埋め込み。開いても読まない——押されて初めて iframe を作る（外部の読み込みを、見たい人だけに限る） */
-    const clip = s.reel ? `<div class="clip"><button type="button" class="play" data-reel="${s.reel}">▶ 動画を見る / Watch the video</button></div>` : "";
-    const tag = [s.reel ? "VIDEO" : "", n ? `PHOTOS ${n}` : ""].filter(Boolean).join(" · ");
-    return `<li class="has"><details><summary>${line}<span class="ph">${tag}</span></summary>${clip}${imgs}</details></li>`;
+    const tags = (s.reel ? `<button type="button" class="ph" data-k="v" aria-expanded="false">VIDEO</button>` : "") +
+                 (n ? `<button type="button" class="ph" data-k="p" aria-expanded="false">PHOTOS ${n}</button>` : "");
+    /* 写真の src は開いたときに入れる。最初から入れると、開かない人にも全部落とさせることになる。
+       動画はInstagramの埋め込みで、VIDEO を押して初めて iframe を作る（外部の読み込みを、見たい人だけに限る） */
+    const pv = s.reel ? `<div class="pn" data-k="v" data-reel="${s.reel}" hidden><div class="clip"></div></div>` : "";
+    const pp = n ? `<div class="pn" data-k="p" hidden><div class="roll">${s.photos.map(p => `<img data-src="${p.src}" alt="${p.alt}">`).join("")}</div></div>` : "";
+    return `<li class="has"><div class="hd">${line}<span class="tags">${tags}</span></div>${pv}${pp}</li>`;
   }).join("");
   const rest = past.length - PAST_MAX;
   document.getElementById("past").innerHTML =
     `<h2>Past／これまでのライブ</h2><ul class="past">${rows}` +
     (rest > 0 ? `<li><span></span><span>…ほか ${rest} 回 / and ${rest} more</span></li>` : "") +
     `</ul>`;
-  document.querySelectorAll(".past details").forEach(el => el.addEventListener("toggle", () => {
-    if (el.open) el.querySelectorAll("img[data-src]").forEach(i => { i.src = i.dataset.src; i.removeAttribute("data-src"); });
-  }));
-  document.querySelectorAll(".past .play").forEach(b => b.addEventListener("click", () => {
-    const f = document.createElement("iframe");
-    f.src = "https://www.instagram.com/reel/" + b.dataset.reel + "/embed/";
-    f.title = "SONEANDO live video (Instagram)";
-    f.allowFullscreen = true;
-    b.parentNode.classList.add("on");
-    b.replaceWith(f);
-  }));
+  /* VIDEO と PHOTOS は別々に開閉する。動画は閉じたら iframe ごと捨てる（開いたままだと裏で音が鳴り続けるため） */
+  document.querySelectorAll(".past li.has").forEach(li => {
+    const btns = li.querySelectorAll(".ph");
+    const toggle = b => {
+      const pn = li.querySelector('.pn[data-k="' + b.dataset.k + '"]');
+      const open = pn.hidden;
+      pn.hidden = !open;
+      b.setAttribute("aria-expanded", open);
+      if (b.dataset.k === "p") {
+        if (open) pn.querySelectorAll("img[data-src]").forEach(i => { i.src = i.dataset.src; i.removeAttribute("data-src"); });
+        return;
+      }
+      const clip = pn.firstChild;
+      clip.classList.toggle("on", open);
+      if (!open) { clip.replaceChildren(); return; }
+      const f = document.createElement("iframe");
+      f.src = "https://www.instagram.com/reel/" + pn.dataset.reel + "/embed/";
+      f.title = "SONEANDO live video (Instagram)";
+      f.allowFullscreen = true;
+      clip.append(f);
+    };
+    btns.forEach(b => b.addEventListener("click", e => { e.stopPropagation(); toggle(b); }));
+    if (btns.length === 1) {
+      const hd = li.querySelector(".hd");
+      hd.classList.add("one");
+      hd.addEventListener("click", () => toggle(btns[0]));
+    }
+  });
 }
 </script>
 
