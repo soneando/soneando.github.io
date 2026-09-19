@@ -109,6 +109,13 @@ h2{
 .past .roll::-webkit-scrollbar{display:none}
 .past .roll img{flex:0 0 86%;width:86%;scroll-snap-align:start;aspect-ratio:3/2;object-fit:cover;border-radius:8px;background:var(--card)}
 .past .roll img:only-child{flex-basis:100%;width:100%}
+.past .clip{margin-top:12px}
+.past .roll + .clip{margin-top:16px}
+.past .play{font:inherit;font-size:13px;color:var(--cyan);background:none;border:0;padding:6px 0;cursor:pointer;text-align:left}
+.past .play:hover{color:var(--fg)}
+.past .clip iframe{display:block;position:relative;z-index:1;width:100%;height:100%;border:0;border-radius:8px}
+.past .clip.on{position:relative;max-width:340px;aspect-ratio:9/17.5;background:var(--card);border-radius:8px}
+.past .clip.on::before{content:"読み込み中… / Loading…";position:absolute;inset:0;display:grid;place-items:center;color:var(--muted);font-size:13px}
 
 /* 2つの店。箱に入れず、誌面の文章として置く */
 .night{padding:6px 0}
@@ -272,6 +279,7 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
    日程だけ決まって中身が未定なら tbd:true。start・charge・title を省ける
    終わった回に写真を足すなら photos:[{ src:"画像のパス", alt:"英語・個人名なし" }]。画像は images/ の下に past-日付-連番.jpg
    （ここに画像パスの形そのものを書かない。deploy.sh が参照中の画像と見なして探し、無いと止まる）
+   終わった回に動画を足すなら reel:"Instagramのリールのコード"。URLの /reel/ と次の / の間だけを入れる（? 以降の共有トークンは載せない）
    ===================================================================== */
 const SHOWS = [
   {
@@ -299,6 +307,7 @@ const SHOWS = [
     title:"Cuban Night by Dimelo Sonean2",
     charge:"¥2,500",
     price:2500,
+    reel:"Dc9x95CNrDJ",
     photos:[
       { src:"images/past-2026-09-06-1.jpg",
         alt:"SONEANDO at Cafe La Vida in Hiroo — trumpet, keyboard, congas and double bass on a small stage under the restaurant's neon sign, against a brick wall." },
@@ -472,11 +481,14 @@ if (past.length) {
     const d = s.dt;
     const line = `<span class="d">${d.getFullYear()}.${d.getMonth()+1}.${d.getDate()}</span>` +
                  `<span><span class="v">${s.venue}</span> ${s.title || ""}</span>`;
-    if (!s.photos || !s.photos.length) return `<li>${line}</li>`;
+    const n = s.photos ? s.photos.length : 0;
+    if (!n && !s.reel) return `<li>${line}</li>`;
     /* src は開いたときに入れる。最初から入れると、開かない人にも全部落とさせることになる */
-    const imgs = s.photos.map(p => `<img data-src="${p.src}" alt="${p.alt}">`).join("");
-    return `<li class="has"><details><summary>${line}<span class="ph">PHOTOS ${s.photos.length}</span></summary>` +
-           `<div class="roll">${imgs}</div></details></li>`;
+    const imgs = n ? `<div class="roll">${s.photos.map(p => `<img data-src="${p.src}" alt="${p.alt}">`).join("")}</div>` : "";
+    /* 動画はInstagramの埋め込み。開いても読まない——押されて初めて iframe を作る（外部の読み込みを、見たい人だけに限る） */
+    const clip = s.reel ? `<div class="clip"><button type="button" class="play" data-reel="${s.reel}">▶ 動画を見る / Watch the video</button></div>` : "";
+    const tag = [s.reel ? "VIDEO" : "", n ? `PHOTOS ${n}` : ""].filter(Boolean).join(" · ");
+    return `<li class="has"><details><summary>${line}<span class="ph">${tag}</span></summary>${clip}${imgs}</details></li>`;
   }).join("");
   const rest = past.length - PAST_MAX;
   document.getElementById("past").innerHTML =
@@ -485,6 +497,14 @@ if (past.length) {
     `</ul>`;
   document.querySelectorAll(".past details").forEach(el => el.addEventListener("toggle", () => {
     if (el.open) el.querySelectorAll("img[data-src]").forEach(i => { i.src = i.dataset.src; i.removeAttribute("data-src"); });
+  }));
+  document.querySelectorAll(".past .play").forEach(b => b.addEventListener("click", () => {
+    const f = document.createElement("iframe");
+    f.src = "https://www.instagram.com/reel/" + b.dataset.reel + "/embed/";
+    f.title = "SONEANDO live video (Instagram)";
+    f.allowFullscreen = true;
+    b.parentNode.classList.add("on");
+    b.replaceWith(f);
   }));
 }
 </script>
