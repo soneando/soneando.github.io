@@ -341,6 +341,11 @@ const SHOWS = [
     price:4000,
     sets:"19:15 / 20:30 / 21:45",
     note:"入れ替えなし / No seat turnover",
+    reel:"DdqttXWNsG5",
+    photos:[
+      { src:"images/past-2026-09-23-1.jpg",
+        alt:"SONEANDO at All of Me Club in Roppongi — grand piano, congas with vocals and double bass on stage in front of a red velvet curtain under the club's sign." },
+    ],
     map:"https://www.google.com/maps/search/?api=1&query=All+of+Me+Club+%E5%85%AD%E6%9C%AC%E6%9C%A8"
   },
   {
@@ -495,7 +500,7 @@ if (past.length) {
     const n = s.photos ? s.photos.length : 0;
     if (!n && !s.reel) return `<li>${line}</li>`;
     const tags = (s.reel ? `<button type="button" class="ph" data-k="v" aria-expanded="false">VIDEO</button>` : "") +
-                 (n ? `<button type="button" class="ph" data-k="p" aria-expanded="false">PHOTOS ${n}</button>` : "");
+                 (n ? `<button type="button" class="ph" data-k="p" aria-expanded="false">PHOTOS${n > 1 ? " " + n : ""}</button>` : "");
     /* 写真の src は開いたときに入れる。最初から入れると、開かない人にも全部落とさせることになる。
        動画はInstagramの埋め込みで、VIDEO を押して初めて iframe を作る（外部の読み込みを、見たい人だけに限る） */
     const pv = s.reel ? `<div class="pn" data-k="v" data-reel="${s.reel}" hidden><div class="clip"></div></div>` : "";
