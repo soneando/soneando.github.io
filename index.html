@@ -21,6 +21,11 @@
     gtag('js', new Date());
     gtag('config', 'G-PRJ4H0K5RP');
   })();
+  // 電話のタップは外部リンクとして自動計測されないので自分で送る。名前は地図・予約クリックと同じ venue_action（GA側でキーイベント指定済み）
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest('a[href^="tel:"]');
+    if (a) gtag("event", "venue_action", { link_domain: "tel", link_url: a.getAttribute("href") });
+  });
 </script>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
