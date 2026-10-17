@@ -113,6 +113,20 @@ h2{
 .show .when-en{display:block;margin-top:6px;font-family:var(--body);font-size:14px;color:var(--muted);letter-spacing:.04em}
 .show .title{margin-top:14px;font-size:19px;line-height:1.35}
 .show .where{margin-top:5px;font-size:15px;color:var(--muted)}
+.show.mini{padding:0;background:none;border:0;border-bottom:1px solid var(--line);border-radius:0;margin-top:0}
+.show.first + .show.mini{margin-top:10px}
+.show.mini summary{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:14px 4px;cursor:pointer;list-style:none}
+.show.mini summary::-webkit-details-marker{display:none}
+.show.mini .date{display:flex;flex-direction:column;align-items:center;justify-content:center;min-width:56px;padding:7px 0 6px;border-radius:8px;background:#2A2A31;font-family:"Anton";font-size:22px;line-height:1.1}
+.show.mini .date small{font-family:var(--body);font-size:11px;color:var(--muted);line-height:1.2}
+.show.mini .sum{min-width:0}
+.show.mini .t{display:block;font-size:17px;line-height:1.35}
+.show.mini .m{display:block;margin-top:3px;font-size:13px;color:var(--muted)}
+.show.mini .chev{width:9px;height:9px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(-45deg);margin-right:4px;transition:transform .2s}
+.show.mini[open] .chev{transform:rotate(45deg)}
+.show.mini .facts,.show.mini .btn{margin-left:4px;margin-right:4px}
+.show.mini .reserve{margin-bottom:18px}
+.show.mini .btn{margin-top:18px}
 .facts{margin-top:18px;padding-top:16px;border-top:1px solid var(--line);display:grid;grid-template-columns:auto 1fr;gap:8px 18px;font-size:14px}
 .facts dt{color:var(--muted)}
 .facts a{color:var(--cyan);text-decoration:none}
@@ -502,8 +516,23 @@ function card(s, isFirst) {
   if (v.site) facts += row("サイト / Website",
     `<a href="${v.site}" target="_blank" rel="noopener">${v.site.replace(/^https?:\/\/(www\.)?/,"").replace(/\/$/,"")}</a>`);
 
-  return `<div class="show${isFirst ? " first" : ""}">
-    ${isFirst ? `<div class="tag">NEXT／次回</div>` : ""}
+  if (!isFirst) {
+    /* 次々回以降は1行にたたみ、タップで詳細。中身は次回と同じ（要約に落とさない） */
+    const t = s.tbd ? "日程のみ決定 / Time TBA" : `${s.start} (${DOW_JA[d.getDay()]})`;
+    return `<details class="show mini">
+    <summary>
+      <span class="date"><small>${d.getMonth()+1}月</small>${d.getDate()}日</span>
+      <span class="sum"><span class="t">${s.title || s.venue}</span><span class="m">${t} · ${s.venue} — ${s.area}</span></span>
+      <span class="chev" aria-hidden="true"></span>
+    </summary>
+    <dl class="facts">${facts}</dl>
+    <a class="btn" href="${s.map}" target="_blank" rel="noopener">地図を開く / Open in Maps</a>
+    ${v.book ? `<a class="reserve" href="${v.book}" target="_blank" rel="noopener">${v.walkin ? "席を取っておきたい方はこちら / Reserve a table" : "予約・お問い合わせ / Reserve or ask"}</a>` : ""}
+  </details>`;
+  }
+
+  return `<div class="show first">
+    <div class="tag">NEXT／次回</div>
     <div class="when">${d.getMonth()+1}月${d.getDate()}日 <span class="dow">(${DOW_JA[d.getDay()]})</span>
       <span class="when-en">${DOW_EN[d.getDay()]}, ${d.toLocaleDateString("en-US",{month:"long",day:"numeric"})}</span></div>
     ${s.title ? `<div class="title">${s.title}</div><div class="where">${s.venue} — ${s.area}</div>`
