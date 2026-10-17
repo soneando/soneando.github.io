@@ -176,6 +176,24 @@ h2{
 .follow .btn{background:var(--cyan);color:#08272F;max-width:290px;margin:16px auto 0}
 
 footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-height:2}
+
+/* PC（960px〜）：ロゴとカルーセルを広げ、会場だけ2カラムにする。
+   スマホは上の1カラムのまま変えない */
+@media (min-width:960px){
+  .wrap{max-width:1120px;padding:0 40px 88px}
+  header{padding-top:clamp(120px,10.5vw,152px)}
+  .logo span{font-size:clamp(74px,8vw,112px)}
+  .tagline{margin-top:40px}
+  .tagline .en{font-size:34px}
+  .tagline .ja{font-size:16px}
+  .shots{max-width:920px;margin:34px auto 0;gap:12px}
+  .shots figure{border-radius:16px}
+  .shots img{aspect-ratio:16/9;object-position:center 30%}
+  .dots{margin-top:6px}
+  .narrow{max-width:720px;margin:0 auto}
+  .venues{display:grid;grid-template-columns:1fr 1fr;gap:0 56px;align-items:start}
+  .night.b{border-top:none;margin-top:0;border-left:1px solid var(--line);padding-left:56px}
+}
 </style>
 </head>
 <body>
@@ -210,11 +228,14 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
   <div class="dots" id="dots"></div>
 </header>
 
+<div class="narrow">
 <h2>Shows／ライブ予定</h2>
 <div id="shows"></div>
 <div id="past"></div>
+</div>
 
 <h2>Venues／会場</h2>
+<div class="venues">
 <div class="night a">
   <div class="name">All of Me Club<span class="area">六本木 / Roppongi</span></div>
   <div class="kind">Jazz Bar</div>
@@ -241,6 +262,9 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
   <a class="map" href="https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE" target="_blank" rel="noopener">Googleマップで開く / Open in Maps →</a>
 </div>
 
+</div>
+
+<div class="narrow">
 <h2>Band／メンバー</h2>
 <div class="band">
   <ul class="members">
@@ -255,6 +279,7 @@ footer{margin-top:56px;text-align:center;font-size:12px;color:var(--muted);line-
 <div class="follow">
   <p>次のライブはInstagramでお知らせします。<br>We announce every show on Instagram.</p>
   <a class="btn" href="https://www.instagram.com/dimelo_soneando/" target="_blank" rel="noopener">@dimelo_soneando</a>
+</div>
 </div>
 
 <footer>
