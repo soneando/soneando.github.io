@@ -430,6 +430,17 @@ const SHOWS = [
     lesson:"19:30 – 20:00",
     map:"https://www.google.com/maps/search/?api=1&query=Cafe+La+Vida+%E5%BA%83%E5%B0%BE"
   },
+  {
+    /* 2026-10-20 Jun：11/25はキャンセル、12/30に振替（内容は同じ）。11/25は REGULAR.skip に入れてある */
+    date:"2026-12-30", open:"18:00", start:"19:15",
+    venue:"All of Me Club", area:"六本木 / Roppongi",
+    title:"Cuba Night with Soneando",
+    charge:"¥4,000 ＋ 2オーダー<br><span style='color:var(--muted)'>plus a two-item minimum (food or drink)</span>",
+    price:4000,
+    sets:"19:15 / 20:30 / 21:45",
+    note:"入れ替えなし / No seat turnover",
+    map:"https://www.google.com/maps/search/?api=1&query=All+of+Me+Club+%E5%85%AD%E6%9C%AC%E6%9C%A8"
+  },
 ];
 
 /* 予約は会場ごと。SHOWS の venue 名と一致させる */
@@ -450,7 +461,7 @@ const REGULAR = {
   until: "2026-11-30",    // "YYYY-MM-DD"。空なら続く。2026-09-13 Jun：12月は変則・2027年は未発表なので11月まで
   nth: 4, weekday: 3,     // 第4・水曜（0=日）
   ahead: 2,
-  skip: [],
+  skip: ["2026-11-25"],   // 2026-10-20 キャンセル → 12/30に振替（SHOWS）
   show: {
     open:"18:00", start:"19:15",
     venue:"All of Me Club", area:"六本木 / Roppongi",
